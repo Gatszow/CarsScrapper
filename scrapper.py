@@ -1,8 +1,5 @@
 from selenium import webdriver
-
-
-class WrongThingToGetError(Exception):
-    pass
+from exceptions import WrongThingToGetError
 
 
 def convert_to_str(input_seq):
@@ -100,7 +97,7 @@ class CarsScrapper(object):
         urls = self.get_products('url', end_of_counter)
         prices = self.get_products('price', end_of_counter)
 
-        print(f'{makes}\n\n{models}\n\n{mileages}\n\n{years}\n\n{fuels}\n\n{engine_sizes}\n\n{urls}\n\n{prices}')
+        return makes, models, mileages, years, fuels, engine_sizes, urls, prices
 
 
 trying = CarsScrapper()
