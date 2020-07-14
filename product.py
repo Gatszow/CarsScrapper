@@ -20,7 +20,7 @@ class ProductUpdater(object):
 
         scope = ['https://spreadsheets.google.com/feeds',
                  'https://www.googleapis.com/auth/drive']
-        creds = ServiceAccountCredentials.from_json_keyfile_name('client_secret.json', scope)
+        creds = ServiceAccountCredentials.from_json_keyfile_name('client_secret_1.json', scope)
         client = gspread.authorize(creds)
         self.sheet = client.open(spreadsheet_name).sheet1
 

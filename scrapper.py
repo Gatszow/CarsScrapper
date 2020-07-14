@@ -43,28 +43,36 @@ class CarsScrapper(object):
         try:
             if thing_to_get == 'mileage':
                 for i in range(1, counter+1):
-                    mileage = self.driver.find_element_by_xpath(f'/html/body/div[4]/div[2]/section/div[2]/div[1]/div/div[1]/div[5]/article[{i}]/div[2]/ul/li[2]/span')
+                    mileage = self.driver.find_element_by_xpath(
+                        f'/html/body/div[4]/div[2]/section/div[2]/div[1]/div/div[1]/div[5]/article[{i}'
+                        f']/div[2]/ul/li[2]/span')
                     self.mileages.append(mileage.text)
 
                 return self.mileages
 
             elif thing_to_get == 'year':
                 for i in range(1, counter + 1):
-                    year = self.driver.find_element_by_xpath(f'/html/body/div[4]/div[2]/section/div[2]/div[1]/div/div[1]/div[5]/article[{i}]/div[2]/ul/li[1]/span')
+                    year = self.driver.find_element_by_xpath(
+                        f'/html/body/div[4]/div[2]/section/div[2]/div[1]/div/div[1]/div[5]/article[{i}'
+                        f']/div[2]/ul/li[1]/span')
                     self.years.append(year.text)
 
                 return self.years
 
             elif thing_to_get == 'fuel':
                 for i in range(1, counter + 1):
-                    fuel = self.driver.find_element_by_xpath(f'/html/body/div[4]/div[2]/section/div[2]/div[1]/div/div[1]/div[5]/article[{i}]/div[2]/ul/li[4]/span')
+                    fuel = self.driver.find_element_by_xpath(
+                        f'/html/body/div[4]/div[2]/section/div[2]/div[1]/div/div[1]/div[5]/article[{i}'
+                        f']/div[2]/ul/li[4]/span')
                     self.fuels.append(fuel.text)
 
                 return self.fuels
 
             elif thing_to_get == 'engine_size':
                 for i in range(1, counter + 1):
-                    engine_size = self.driver.find_element_by_xpath(f'/html/body/div[4]/div[2]/section/div[2]/div[1]/div/div[1]/div[5]/article[{i}]/div[2]/ul/li[3]/span')
+                    engine_size = self.driver.find_element_by_xpath(
+                        f'/html/body/div[4]/div[2]/section/div[2]/div[1]/div/div[1]/div[5]/article[{i}'
+                        f']/div[2]/ul/li[3]/span')
                     self.engine_sizes.append(engine_size.text)
 
                 return self.engine_sizes
@@ -77,7 +85,10 @@ class CarsScrapper(object):
 
             elif thing_to_get == 'price':
                 for i in range(1, counter + 1):
-                    price = self.driver.find_element_by_xpath(f'/html/body/div[4]/div[2]/section/div[2]/div[1]/div/div[1]/div[5]/article[{i}]/div[2]/div[2]/div/div/span')
+                    price = self.driver.find_element_by_xpath(
+                        f'/html/body/div[4]/div[2]/section/div[2]/div[1]/div/div[1]/div[5]/article[{i}'
+                        f']/div[2]/div[2]/div/div/span')
+
                     self.prices.append(price.text)
 
                 return self.prices
