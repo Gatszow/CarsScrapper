@@ -24,7 +24,7 @@ def get_price_and_currency(price_with_currency):
 
 class CarsScrapper(object):
     def __init__(self):
-        '''self.url = 'https://www.otomoto.pl/osobowe/' \
+        self.url = 'https://www.otomoto.pl/osobowe/' \
                    '?search%5Bfilter_float_price%3Ato%5D=20000&search' \
                    '%5Bfilter_float_mileage%3Ato%5D=150000&search' \
                    '%5Bfilter_enum_fuel_type%5D%5B0%5D=petrol&search' \
@@ -33,8 +33,6 @@ class CarsScrapper(object):
                    '%5Bfilter_enum_no_accident%5D=1&search' \
                    '%5Border%5D=created_at%3Adesc&search%5Bbrand_program_id%5D' \
                    '%5B0%5D=&search%5Bcountry%5D=&view=list'
-                   '''
-        self.url = 'https://www.otomoto.pl/osobowe/alfa-romeo/?search%5Bfilter_float_price%3Ato%5D=20000&search%5Bfilter_float_mileage%3Ato%5D=150000&search%5Bfilter_enum_fuel_type%5D%5B0%5D=petrol&search%5Bfilter_enum_fuel_type%5D%5B1%5D=petrol-lpg&search%5Bfilter_enum_damaged%5D=0&search%5Bfilter_enum_no_accident%5D=1&search%5Border%5D=created_at%3Adesc&search%5Bbrand_program_id%5D%5B0%5D=&search%5Bcountry%5D=&view=list'
 
         self.driver = webdriver.Firefox()
         self.driver.get(self.url)
@@ -55,10 +53,14 @@ class CarsScrapper(object):
     def get_products_make_and_model(self, title_class_name: str):
         titles = self.driver.find_elements_by_class_name(title_class_name)
         for title in titles:
-            print(title.text)
-            if title.text in self.excluded_makes:
+            if self.excluded_makes[0] in title.text or self.excluded_makes[1] in title.text or self.excluded_makes[2] \
+                    in title.text or self.excluded_makes[3] in title.text or self.excluded_makes[4] in title.text:
+
                 self.models.append(convert_to_str(title.text.split()[2:]))
-                self.makes.append(title.text.split()[:2])
+                temp_makes = title.text.split()[:2]
+                make = ' '.join(temp_makes)
+                self.makes.append(make)
+                temp_makes.clear()
             else:
                 self.models.append(convert_to_str(title.text.split()[1:]))
                 self.makes.append(title.text.split()[0])
@@ -148,4 +150,3 @@ class CarsScrapper(object):
 
 trying = CarsScrapper()
 trying.search()
-'''Poprawić get_products_make_and_model'''
