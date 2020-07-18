@@ -1,5 +1,20 @@
 from selenium import webdriver
 from exceptions import WrongThingToGetError
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import NoSuchElementException as NSEE, \
+    ElementClickInterceptedException as ECIE, \
+    TimeoutException as TE, \
+    InvalidSessionIdException as ISIE
+
+
+def is_negotiable(string: str):
+    if string == 'Do negocjacji':
+        string = 'True'
+    else:
+        string = 'False'
+    return string
 
 
 def convert_to_str(input_seq):
@@ -36,6 +51,7 @@ class CarsScrapper(object):
 
         self.driver = webdriver.Firefox()
         self.driver.get(self.url)
+        self.isclosed = False
         self.list_of_tuples = []
 
         self.makes = []
@@ -49,6 +65,7 @@ class CarsScrapper(object):
         self.urls = []
         self.prices = []
         self.currencies = []
+        self.negotiable = []
 
     def get_products_make_and_model(self, title_class_name: str):
         titles = self.driver.find_elements_by_class_name(title_class_name)
@@ -61,6 +78,7 @@ class CarsScrapper(object):
                 make = ' '.join(temp_makes)
                 self.makes.append(make)
                 temp_makes.clear()
+
             else:
                 self.models.append(convert_to_str(title.text.split()[1:]))
                 self.makes.append(title.text.split()[0])
@@ -73,37 +91,57 @@ class CarsScrapper(object):
         try:
             if thing_to_get == 'mileage':
                 for i in range(1, counter+1):
-                    mileage = self.driver.find_element_by_xpath(
-                        f'/html/body/div[4]/div[2]/section/div[2]/div[1]/div/div[1]/div[5]/article[{i}'
-                        f']/div[2]/ul/li[2]/span')
-                    self.mileages.append(mileage.text)
+                    try:
+                        mileage = self.driver.find_element_by_xpath(
+                            f'/html/body/div[4]/div[2]/section/div[2]/div[1]/div/div[1]/div[5]/article[{i}'
+                            f']/div[2]/ul/li[2]/span')
+                        self.mileages.append(mileage.text)
+
+                    except NSEE:
+                        mileage = None
+                        self.mileages.append(mileage)
 
                 return self.mileages
 
             elif thing_to_get == 'year':
                 for i in range(1, counter + 1):
-                    year = self.driver.find_element_by_xpath(
-                        f'/html/body/div[4]/div[2]/section/div[2]/div[1]/div/div[1]/div[5]/article[{i}'
-                        f']/div[2]/ul/li[1]/span')
-                    self.years.append(year.text)
+                    try:
+                        year = self.driver.find_element_by_xpath(
+                            f'/html/body/div[4]/div[2]/section/div[2]/div[1]/div/div[1]/div[5]/article[{i}'
+                            f']/div[2]/ul/li[1]/span')
+                        self.years.append(year.text)
+
+                    except NSEE:
+                        year = None
+                        self.years.append(year)
 
                 return self.years
 
             elif thing_to_get == 'fuel':
                 for i in range(1, counter + 1):
-                    fuel = self.driver.find_element_by_xpath(
-                        f'/html/body/div[4]/div[2]/section/div[2]/div[1]/div/div[1]/div[5]/article[{i}'
-                        f']/div[2]/ul/li[4]/span')
-                    self.fuels.append(fuel.text)
+                    try:
+                        fuel = self.driver.find_element_by_xpath(
+                            f'/html/body/div[4]/div[2]/section/div[2]/div[1]/div/div[1]/div[5]/article[{i}'
+                            f']/div[2]/ul/li[4]/span')
+                        self.fuels.append(fuel.text)
+
+                    except NSEE:
+                        fuel = None
+                        self.fuels.append(fuel)
 
                 return self.fuels
 
             elif thing_to_get == 'engine_size':
                 for i in range(1, counter + 1):
-                    engine_size = self.driver.find_element_by_xpath(
-                        f'/html/body/div[4]/div[2]/section/div[2]/div[1]/div/div[1]/div[5]/article[{i}'
-                        f']/div[2]/ul/li[3]/span')
-                    self.engine_sizes.append(engine_size.text)
+                    try:
+                        engine_size = self.driver.find_element_by_xpath(
+                            f'/html/body/div[4]/div[2]/section/div[2]/div[1]/div/div[1]/div[5]/article[{i}'
+                            f']/div[2]/ul/li[3]/span')
+                        self.engine_sizes.append(engine_size.text)
+
+                    except NSEE:
+                        engine_size = None
+                        self.engine_sizes.append(engine_size)
 
                 return self.engine_sizes
 
@@ -121,32 +159,92 @@ class CarsScrapper(object):
 
     def get_products_price_and_currency(self, counter):
         for i in range(1, counter + 1):
-            price = self.driver.find_element_by_xpath(
-                f'/html/body/div[4]/div[2]/section/div[2]/div[1]/div/div[1]/div[5]/article[{i}'
-                f']/div[2]/div[2]/div/div/span')
-            value, currency = get_price_and_currency(price.text)
-            self.prices.append(value)
-            self.currencies.append(currency)
-        return self.prices, self.currencies
+            try:
+                price = self.driver.find_element_by_xpath(
+                    f'/html/body/div[4]/div[2]/section/div[2]/div[1]/div/div[1]/div[5]/article[{i}'
+                    f']/div[2]/div[2]/div/div/span')
+                value, currency = get_price_and_currency(price.text)
+                self.prices.append(value)
+                self.currencies.append(currency)
+            except NSEE:
+                price = self.driver.find_element_by_xpath(
+                    f'/html/body/div[5]/div[2]/section/div[2]/div[1]/div/div[1]/div[5]/article[{i}'
+                    f']/div[2]/div[2]/div/div[1]/span')
+                value, currency = get_price_and_currency(price.text)
+                self.prices.append(value)
+                self.currencies.append(currency)
+            else:
+                negotiable = "Failed to get"
+                self.negotiable.append(is_negotiable(negotiable))
+
+            try:
+                negotiable = self.driver.find_element_by_xpath(f'/html/body/div[4]/div[2]/section/div[2]/div[1]/div/d'
+                                                               f'iv[1]/div[5]/article[{i}]/div[2]/div[2]/div/span').text
+                self.negotiable.append(is_negotiable(negotiable))
+            except NSEE:
+                negotiable = self.driver.find_element_by_xpath(
+                    f'/html/body/div[5]/div[2]/section/div[2]/div[1]/div/div[1]'
+                    f'/div[5]/article[{i}]/div[2]/div[2]/div/span').text
+                self.negotiable.append(is_negotiable(negotiable))
+            else:
+                negotiable = "Failed to get"
+                self.negotiable.append(is_negotiable(negotiable))
+
+        return self.prices, self.currencies, self.negotiable
 
     def search(self):
-        makes, models, end_of_counter = self.get_products_make_and_model('offer-title__link')
-        mileages = self.get_products('mileage', end_of_counter)
-        years = self.get_products('year', end_of_counter)
-        fuels = self.get_products('fuel', end_of_counter)
-        engine_sizes = self.get_products('engine_size', end_of_counter)
-        urls = self.get_products('url', end_of_counter)
-        prices, currencies = self.get_products_price_and_currency(end_of_counter)
+        for x in range(10):
+            if self.isclosed:
+                break
+            else:
+                makes, models, end_of_counter = self.get_products_make_and_model('offer-title__link')
+                mileages = self.get_products('mileage', end_of_counter)
+                years = self.get_products('year', end_of_counter)
+                fuels = self.get_products('fuel', end_of_counter)
+                engine_sizes = self.get_products('engine_size', end_of_counter)
+                urls = self.get_products('url', end_of_counter)
+                prices, currencies, negotiable = self.get_products_price_and_currency(end_of_counter)
+                for i in range(end_of_counter):
+                    temp = (makes[i], models[i], mileages[i], years[i], fuels[i],
+                            engine_sizes[i], urls[i], prices[i], currencies[i], negotiable[i])
+                    print(temp)
+                    self.list_of_tuples.append(temp)
+                    del temp
 
-        for i in range(end_of_counter):
-            temp = (makes[i], models[i], mileages[i], years[i], fuels[i],
-                    engine_sizes[i], urls[i], prices[i], currencies[i])
-            print(temp)
-            self.list_of_tuples.append(temp)
-            del temp
+                makes.clear(), models.clear(), mileages.clear(), years.clear(), fuels.clear(), engine_sizes.clear()
+                urls.clear(), prices.clear(), currencies.clear(), negotiable.clear()
+                self.next_page()
 
         return self.list_of_tuples
 
+    def next_page(self):
+        try:
+            nexts = WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located(
+                    (By.XPATH, "/html/body/div[4]/div[2]/section/div[2]/div[2]/ul/li[7]/a"))
+            )
+            nexts.click()
 
-trying = CarsScrapper()
-trying.search()
+        except ECIE:
+            interupting_element = self.driver.find_element_by_xpath('/html/body/div[4]/div[15]/div/div/a')
+            interupting_element.click()
+            nexts = WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located(
+                    (By.XPATH, "/html/body/div[4]/div[2]/section/div[2]/div[2]/ul/li[7]/a"))
+            )
+            nexts.click()
+
+        except TE:
+            #self.driver.close()
+            #self.isclosed = True
+            print('\n TimeOut \n')
+
+        except ISIE as e:
+            print(e)
+        else:
+            print('Else statement')
+
+
+if __name__ == '__main__':
+    CarsScrapper().search()
+'''Poprawić next element i search, reszta jak narazie w porządku'''
