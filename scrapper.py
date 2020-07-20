@@ -6,7 +6,18 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException as NSEE, ElementNotInteractableException as ENIE
 
 
-def is_negotiable(string: str):
+def change_to_int(string: str) -> int:
+    string = string.replace(' ', '')
+    while True:
+        try:
+            string = int(string)
+            break
+        except ValueError:
+            string = string[:-1]
+    return string
+
+
+def is_negotiable(string: str) -> str:
     if string == 'Do negocjacji':
         string = 'True'
     else:
@@ -14,19 +25,22 @@ def is_negotiable(string: str):
     return string
 
 
-def get_price_and_currency(price_with_currency):
+def get_price_and_currency(price_with_currency: str):
     price_with_currency = price_with_currency.replace(' ', '')
     name_of_currency = []
     for z in range(len(price_with_currency)):
         try:
             int(price_with_currency)
             break
+
         except ValueError:
             name_of_currency.append(price_with_currency[len(price_with_currency) - 1:])
             price_with_currency = price_with_currency[:-1]
+
     name_of_currency.reverse()
     name_of_currency = ''.join(name_of_currency)
-    return price_with_currency, name_of_currency
+
+    return int(price_with_currency), name_of_currency
 
 
 class CarsScrapper(object):
@@ -87,10 +101,10 @@ class CarsScrapper(object):
                         mileage = self.driver.find_element_by_xpath(
                             f'/html/body/div[4]/div[2]/section/div[2]/div[1]/div/div[1]/div[5]/article[{i}'
                             f']/div[2]/ul/li[2]/span')
-                        self.mileages.append(mileage.text)
+                        self.mileages.append(change_to_int(mileage.text))
 
                     except NSEE:
-                        mileage = None
+                        mileage = 0000
                         self.mileages.append(mileage)
 
                 return self.mileages
@@ -101,10 +115,10 @@ class CarsScrapper(object):
                         year = self.driver.find_element_by_xpath(
                             f'/html/body/div[4]/div[2]/section/div[2]/div[1]/div/div[1]/div[5]/article[{i}'
                             f']/div[2]/ul/li[1]/span')
-                        self.years.append(year.text)
+                        self.years.append(int(year.text))
 
                     except NSEE:
-                        year = None
+                        year = 0000
                         self.years.append(year)
 
                 return self.years
@@ -118,7 +132,7 @@ class CarsScrapper(object):
                         self.fuels.append(fuel.text)
 
                     except NSEE:
-                        fuel = None
+                        fuel = 'Failed to get'
                         self.fuels.append(fuel)
 
                 return self.fuels
@@ -129,17 +143,17 @@ class CarsScrapper(object):
                         engine_size = self.driver.find_element_by_xpath(
                             f'/html/body/div[4]/div[2]/section/div[2]/div[1]/div/div[1]/div[5]/article[{i}'
                             f']/div[2]/ul/li[3]/span')
-                        self.engine_sizes.append(engine_size.text)
+                        self.engine_sizes.append(change_to_int(engine_size.text))
 
                     except NSEE:
-                        engine_size = None
+                        engine_size = 0000
                         self.engine_sizes.append(engine_size)
 
                 return self.engine_sizes
 
             elif thing_to_get == 'url':
-                a_class = self.driver.find_elements_by_class_name('offer-title__link')
-                self.urls = [url.get_attribute('href') for url in a_class]
+                self.urls = [url.get_attribute('href') for url in
+                             self.driver.find_elements_by_class_name('offer-title__link')]
 
                 return self.urls
 
@@ -154,23 +168,16 @@ class CarsScrapper(object):
             try:
                 price = self.driver.find_element_by_xpath(
                     f'/html/body/div[4]/div[2]/section/div[2]/div[1]/div/div[1]/div[5]/article[{i}'
-                    f']/div[2]/div[2]/div/div/span')
-                value, currency = get_price_and_currency(price.text)
-                self.prices.append(value)
-                self.currencies.append(currency)
-
-            except NSEE:
-                price = self.driver.find_element_by_xpath(
-                    f'/html/body/div[5]/div[2]/section/div[2]/div[1]/div/div[1]/div[5]/article[{i}'
                     f']/div[2]/div[2]/div/div[1]/span')
                 value, currency = get_price_and_currency(price.text)
                 self.prices.append(value)
                 self.currencies.append(currency)
 
-            else:
-                price = "Failed to get"
-                self.prices.append(price)
-                self.currencies.append(price)
+            except NSEE:
+                value = 0000
+                currency = 'Failed'
+                self.prices.append(value)
+                self.currencies.append(currency)
 
             try:
                 negotiable = self.driver.find_element_by_xpath(
@@ -179,14 +186,8 @@ class CarsScrapper(object):
                 self.negotiable.append(is_negotiable(negotiable))
 
             except NSEE:
-                negotiable = self.driver.find_element_by_xpath(
-                    f'/html/body/div[5]/div[2]/section/div[2]/div[1]/div/div[1]'
-                    f'/div[5]/article[{i}]/div[2]/div[2]/div/span').text
-                self.negotiable.append(is_negotiable(negotiable))
-
-            else:
-                negotiable = "Failed to get"
-                self.negotiable.append(is_negotiable(negotiable))
+                negotiable = 'Failed to get'
+                self.negotiable.append(negotiable)
 
         return self.prices, self.currencies, self.negotiable
 
@@ -207,11 +208,11 @@ class CarsScrapper(object):
                 prices, currencies, negotiable = self.get_products_price_and_currency(number_of_articles)
 
                 for i in range(number_of_articles):
-                    temp = (makes[i], models[i], mileages[i], years[i], fuels[i],
-                            engine_sizes[i], urls[i], prices[i], currencies[i], negotiable[i])
-                    self.list_of_tuples.append(temp)
-                    del temp
-
+                    temporary_list = (makes[i], models[i], mileages[i], years[i], fuels[i],
+                                      engine_sizes[i], urls[i], prices[i], currencies[i], negotiable[i])
+                    self.list_of_tuples.append(temporary_list)
+                    del temporary_list
+                print(self.list_of_tuples)
                 makes.clear(), models.clear(), mileages.clear(), years.clear(), fuels.clear(), engine_sizes.clear()
                 urls.clear(), prices.clear(), currencies.clear(), negotiable.clear()
 
@@ -250,4 +251,5 @@ class CarsScrapper(object):
 
 
 if __name__ == '__main__':
-    CarsScrapper().search()
+    temp = CarsScrapper().search()
+    print(temp)

@@ -12,7 +12,7 @@ class DatabaseUpdater(object):
             database='test'
         )
 
-        self.mycursor = self.mydb.cursor()
+        self.mycursor = self.mydb.cursor(buffered=True)
 
         # Database creation
         # mycursor.execute('CREATE DATABASE test')
@@ -23,21 +23,24 @@ class DatabaseUpdater(object):
             'CarID INT PRIMARY KEY AUTO_INCREMENT, '
             'Make VARCHAR(30), '
             'Model VARCHAR(30), '
-            'Mileage MEDIUMINT UNSIGNED, '
+            'Mileage_km MEDIUMINT UNSIGNED, '
             'ProductionYear YEAR, '
             'FuelType ENUM("Benzyna", "Benzyna+LPG", "Benzyna+CNG", '
-            '"Diesel", "Elektryczny", "Etanol", "Hybryda", "Wodór"), '
-            'EngineSize SMALLINT UNSIGNED, '
+            '"Diesel", "Elektryczny", "Etanol", "Hybryda", "Wodór", "Failed to get"), '
+            'EngineSize_cm3 SMALLINT UNSIGNED, '
             'URL VARCHAR(500), '
             'Price MEDIUMINT UNSIGNED, '
             'Currency VARCHAR(10), '
             'Negotiable ENUM("True", "False", "Failed to get") NOT NULL)'
         )
+        self.values = CarsScrapper.search
+
+    def check(self):
+        self.values = list(set(self.values))
+        pass
 
     def add(self):
-        self.mycursor.executemany('INSERT INTO Cars Values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
-                                  % CarsScrapper.search)
+        self.check()
+        self.mycursor.executemany('INSERT INTO Cars Values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
+                                  self.values)
         self.mydb.commit()
-
-    def update(self):
-        pass
