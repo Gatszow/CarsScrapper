@@ -211,8 +211,8 @@ class CarsScrapper(object):
                     temporary_list = (makes[i], models[i], mileages[i], years[i], fuels[i],
                                       engine_sizes[i], urls[i], prices[i], currencies[i], negotiable[i])
                     self.list_of_tuples.append(temporary_list)
+                    print(temporary_list)
                     del temporary_list
-                print(self.list_of_tuples)
                 makes.clear(), models.clear(), mileages.clear(), years.clear(), fuels.clear(), engine_sizes.clear()
                 urls.clear(), prices.clear(), currencies.clear(), negotiable.clear()
 

@@ -3,6 +3,11 @@ from secret import password
 from scrapper import CarsScrapper
 
 
+def difference(list1, list2):
+    list_dif = [i for i in list1 + list2 if i not in list1 or i not in list2]
+    return list_dif
+
+
 class DatabaseUpdater(object):
     def __init__(self):
         self.mydb = mysql.connector.connect(
@@ -12,7 +17,7 @@ class DatabaseUpdater(object):
             database='test'
         )
 
-        self.mycursor = self.mydb.cursor(buffered=True)
+        self.mycursor = self.mydb.cursor()
 
         # Database creation
         # mycursor.execute('CREATE DATABASE test')
@@ -34,13 +39,33 @@ class DatabaseUpdater(object):
             'Negotiable ENUM("True", "False", "Failed to get") NOT NULL)'
         )
         self.values = CarsScrapper.search
+        self.without = []
 
     def check(self):
         self.values = list(set(self.values))
-        pass
+        self.mycursor.execute('SELECT * FROM Cars')
+        for record in self.mycursor:
+            for row in range(len(self.values)):
+                if record[1] == self.values[row][0] and record[2] == self.values[row][1] \
+                        and record[3] == self.values[row][2] and record[8] == self.values[row][7] \
+                        and record[9] == self.values[row][8]:
+
+                    self.without.append(self.values[row])
+
+        values = difference(self.without, self.values)
+
+        return values
 
     def add(self):
-        self.check()
+        data = self.check()
         self.mycursor.executemany('INSERT INTO Cars Values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
-                                  self.values)
+                                  data)
         self.mydb.commit()
+
+    def show(self):
+        self.mycursor.execute('SELECT * FROM Cars')
+        for x in self.mycursor:
+            print(x)
+
+
+DatabaseUpdater().show()
